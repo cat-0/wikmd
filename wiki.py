@@ -19,10 +19,10 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def page_to_path(page_name):
     return "wiki/" + page_name + ".md"
 
-def save():
+def save(is_new):
     page_name = request.form['PN']
     content = request.form['CT']
-    with open(page_to_path(page_name), 'w') as f:
+    with open(page_to_path(page_name), 'x' if is_new else 'w') as f:
         f.write(content)
     gitcom()
 
@@ -99,7 +99,7 @@ def index():
 def add_new():
 
     if request.method=='POST':
-        save()
+        save(is_new=True)
 
         return redirect(url_for("file_page",file_page = request.form['PN']))
     else:
@@ -108,7 +108,7 @@ def add_new():
 @app.route('/edit/homepage', methods = ['POST','GET'])
 def edit_homepage():
     if request.method == 'POST':
-        save()
+        save(is_new=False)
 
         return redirect(url_for("file_page",file_page = request.form['PN']))
     else:
@@ -120,10 +120,11 @@ def edit_homepage():
 def edit(page):
     if request.method == 'POST':
         name = request.form['PN']
-        if name != page:
+        is_rename = (name != page)
+        if is_rename:
             os.remove(page_to_path(page))
 
-        save()
+        save(is_new=is_rename)
         return redirect(url_for("file_page",file_page = name))
     else:
         with open(page_to_path(page), 'r', encoding="utf-8") as f:
