@@ -16,10 +16,13 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+def page_to_path(page_name):
+    return "wiki/" + page_name + ".md"
+
 def save():
     page_name = request.form['PN']
     content = request.form['CT']
-    with open('wiki/' + page_name + '.md', 'w') as f:
+    with open(page_to_path(page_name), 'w') as f:
         f.write(content)
     gitcom()
 
@@ -67,10 +70,10 @@ def file_page(file_page):
         html =""
         mod = ""
         try:
-            #latex = pypandoc.convert_file("wiki/" + file_page + ".md", "tex", format="md")
+            #latex = pypandoc.convert_file(page_to_path(file_page), "tex", format="md")
             #html = pypandoc.convert_text(latex,"html5",format='tex', extra_args=["--mathjax"])
-            html = pypandoc.convert_file("wiki/"+ file_page +".md","html5",format='md', extra_args=["--mathjax"], filters=['pandoc-xnos'])
-            mod = "Last modified: %s" % time.ctime(os.path.getmtime("wiki/"+file_page + ".md"))
+            html = pypandoc.convert_file(page_to_path(file_page), "html5", format='md', extra_args=["--mathjax"], filters=['pandoc-xnos'])
+            mod = "Last modified: %s" % time.ctime(os.path.getmtime(page_to_path(file_page)))
         except Exception as a:
             app.logger.info(a)
         return render_template('content.html', title=file_page, info=html, modif=mod)
@@ -118,12 +121,12 @@ def edit(page):
     if request.method == 'POST':
         name = request.form['PN']
         if name != page:
-            os.remove('wiki/' + page +'.md')
+            os.remove(page_to_path(page))
 
         save()
         return redirect(url_for("file_page",file_page = name))
     else:
-        with open('wiki/'+page+'.md', 'r', encoding="utf-8") as f:
+        with open(page_to_path(page), 'r', encoding="utf-8") as f:
             content = f.read()
         return render_template("new.html", content = content, title = page)
 
