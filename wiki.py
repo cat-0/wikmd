@@ -58,8 +58,8 @@ def gitcom():
     commit = "Commit add " + str(date)
     try:
         repo.git.commit('-m', commit)
-    except:
-        print("nothing to commit")
+    except BaseException as e:
+        app.logger.info("nothing to commit : " + str(e))
 
 def convert_page(page_name):
     try:
@@ -86,7 +86,7 @@ def index():
     if request.method=='POST':
       return search()
     else:
-        print("homepage displaying")
+        app.logger.debug("homepage displaying")
         html = convert_page("homepage")
         gitcom()
         return render_template('index.html', homepage = html)
@@ -137,7 +137,7 @@ def upload_file():
             filename = secure_filename(file.filename)
             existing_files = os.listdir('wiki/img')
             while filename in existing_files:
-                print("duplicate!")
+                app.logger.debug("duplicate!")
                 filename, file_extension = os.path.splitext(filename)
                 filename=filename+str(randint(1,9999999))+file_extension
 
@@ -145,23 +145,23 @@ def upload_file():
             try:
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             except:
-                print('save fail ')
+                app.logger.debug('save fail ')
         return filename
 
     # DELETE when DELETE
     if request.method =="DELETE":
         # request data is in format "b'nameoffile.png" decode by utf-8
         filename = request.data.decode("utf-8")
-        print(str(filename))
+        app.logger.debug(str(filename))
         try:
             os.remove((os.path.join(app.config['UPLOAD_FOLDER'], filename)))
         except:
-            print("Could not remove")
+            app.logger.debug("Could not remove")
         return 'OK'
 
 @app.route('/img/<path:filename>')
 def display_image(filename):
-    #print('display_image filename: ' + filename)
+    #app.logger.debug('display_image filename: ' + filename)
     return send_from_directory(UPLOAD_FOLDER,filename,as_attachment=False)
 
 if __name__ == '__main__':
