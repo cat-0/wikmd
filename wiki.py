@@ -61,21 +61,23 @@ def gitcom():
     except:
         print("nothing to commit")
 
+def convert_page(page_name):
+    try:
+        #latex = pypandoc.convert_file(page_to_path(page_name), "tex", format="md")
+        #html = pypandoc.convert_text(latex,"html5",format='tex', extra_args=["--mathjax"])
+        return pypandoc.convert_file(page_to_path(page_name), "html5", format='md', extra_args=["--mathjax"], filters=['pandoc-xnos'])
+    except Exception as a:
+        app.logger.info(a)
+        return ""
+
 
 @app.route('/<file_page>', methods = ['POST', 'GET'])
 def file_page(file_page):
     if request.method == 'POST':
         return search()
     else:
-        html =""
-        mod = ""
-        try:
-            #latex = pypandoc.convert_file(page_to_path(file_page), "tex", format="md")
-            #html = pypandoc.convert_text(latex,"html5",format='tex', extra_args=["--mathjax"])
-            html = pypandoc.convert_file(page_to_path(file_page), "html5", format='md', extra_args=["--mathjax"], filters=['pandoc-xnos'])
-            mod = "Last modified: %s" % time.ctime(os.path.getmtime(page_to_path(file_page)))
-        except Exception as a:
-            app.logger.info(a)
+        html = convert_page(file_page)
+        mod = "Last modified: %s" % time.ctime(os.path.getmtime(page_to_path(file_page)))
         return render_template('content.html', title=file_page, info=html, modif=mod)
 
 
@@ -84,14 +86,8 @@ def index():
     if request.method=='POST':
       return search()
     else:
-        html = ""
         print("homepage displaying")
-        try:
-            html = pypandoc.convert_file("wiki/homepage.md","html5",format='md', extra_args=["--mathjax"], filters=['pandoc-xnos'])
-
-        except Exception as a:
-            app.logger.error(a)
-
+        html = convert_page("homepage")
         gitcom()
         return render_template('index.html', homepage = html)
 
