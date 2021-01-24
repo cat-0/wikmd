@@ -135,11 +135,11 @@ def upload_file():
         for key in request.files:
             file = request.files[key]
             filename = secure_filename(file.filename)
-            for fil in os.listdir('wiki/img'):
-                if fil == filename:
-                    print("duplicate!")
-                    filename, file_extension = os.path.splitext(filename)
-                    filename=filename+str(randint(1,9999999))+file_extension
+            existing_files = os.listdir('wiki/img')
+            while filename in existing_files:
+                print("duplicate!")
+                filename, file_extension = os.path.splitext(filename)
+                filename=filename+str(randint(1,9999999))+file_extension
 
             file_names.append(filename)
             try:
